@@ -6,16 +6,15 @@ const babelCore = require('babel-core');
 const findBabelConfig = require('find-babel-config');
 const tsc = require('typescript');
 
-const transformBabel = src => {
-  console.log('transformBabel', src);
+const transformBabel = (src, filePath) => {
   const {config} = findBabelConfig.sync(process.cwd());
   const transformOptions = {
     presets: ['es2015'],
     plugins: ['transform-runtime']
   };
   const combinedTransformOptions = config || transformOptions;
-  combinedTransformOptions.sourceMaps = 'both';
-  //combinedTransformOptions.filename =
+  combinedTransformOptions.sourceMaps = true;
+  combinedTransformOptions.filename = filePath;
 
   let result;
   try {
@@ -93,12 +92,11 @@ module.exports = {
     // @author https://github.com/locobert
     // heavily based on vueify (Copyright (c) 2014-2016 Evan You)
     const { script, template } = vueCompiler.parseComponent(src, { pad: true});
-    //console.log('parseComponent', 'script.lang', script.lang, 'script.content', script.content, 'template', template);
-    const transform = script.lang || 'babel';
-    let transformedScript = script ? transforms[transform](script.content) : '';
+    const transformKey = script.lang || 'babel';
+    let transformedScript = script ? transforms[transformKey](script.content, filePath) : '';
 
-    if (transform === 'babel') {
-      console.log('src, filePath', src, filePath);
+    let transformedMap;
+    if (transformKey === 'babel') {
       transformedMap = transformedScript.map;
       transformedScript = transformedScript.code;
     }
